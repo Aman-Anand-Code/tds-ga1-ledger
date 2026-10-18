@@ -242,6 +242,14 @@ def aggregate(rows: list[dict[str, Any]], q: str, intent_status: str) -> Any:
         best_key, best_value = ordered[0]
         return best_key
 
+    # Average/value-per-order questions must take precedence over the phrase "how many",
+    # which can refer to a currency amount (e.g. "how many US dollars is an order worth?").
+    if re.search(r"\b(average|avg|mean)\b", q):
+        if not rows:
+            return None
+        total = sum((money_usd(r) for r in rows), Decimal("0"))
+        return round_money(total / len(rows))
+
     if is_quantity_query(q):
         return int(sum(int(r.get("qty", 0)) for r in rows))
 
@@ -251,12 +259,6 @@ def aggregate(rows: list[dict[str, Any]], q: str, intent_status: str) -> Any:
         if re.search(r"\bproducts\b", q) and re.search(r"\b(unique|distinct|different|how many)\b", q):
             return len({r.get("product") for r in rows})
         return len(rows)
-
-    if re.search(r"\b(average|avg|mean)\b", q):
-        if not rows:
-            return None
-        total = sum((money_usd(r) for r in rows), Decimal("0"))
-        return round_money(total / len(rows))
 
     # Specific order lookups can ask for its customer, product, status, region or amount.
     if re.search(r"\b(status|state)\b", q) and len(rows) == 1:
