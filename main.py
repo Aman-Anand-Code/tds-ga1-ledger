@@ -169,7 +169,7 @@ def choose_rows(question: str, filters: dict[str, Any]) -> tuple[list[dict[str, 
         intent_status = "refunded"
     elif re.search(r"\b(void|voided|cancelled|canceled)\b", q):
         intent_status = "void"
-    elif re.search(r"\b(revenue|sales|paid|earning|earnings|turnover|income|sold|spend|spent|spending|purchase|purchases|purchased)\b", q):
+    elif re.search(r"\b(revenue|sales|paid|earn|earns|earned|earning|earnings|turnover|income|generate|generated|made|bring in|brought in|sold|spend|spent|spending|purchase|purchases|purchased)\b", q):
         intent_status = "paid"
 
     rows = []
@@ -277,7 +277,7 @@ def aggregate(rows: list[dict[str, Any]], q: str, intent_status: str) -> Any:
         return round_money(money_usd(r))
 
     # Monetary aggregation defaults: revenue = paid only; refunds = refunded only; generic amount uses current rows.
-    if re.search(r"\b(total|sum|overall|combined|amount|value|revenue|sales|refund|refunds|turnover|earnings|income)\b", q):
+    if re.search(r"\b(total|sum|overall|combined|amount|value|revenue|sales|refund|refunds|turnover|earn|earns|earned|earning|earnings|income|generated|generate|made|brought in)\b", q):
         return round_money(sum((money_usd(r) for r in rows), Decimal("0")))
 
     # If question asks for the customer/product/region on a single matching result, return that field.
